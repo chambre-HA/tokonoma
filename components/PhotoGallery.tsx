@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, ChevronLeft, ChevronRight } from 'lucide-react'
 import type { Photo, MonthIndex } from '@/types'
-import { MONTH_LABELS, MONTH_POETIC } from '@/types'
 
 interface Props {
   year: number
@@ -59,29 +58,6 @@ export function PhotoGallery({ year, month }: Props) {
 
   return (
     <section className="w-full">
-      {/* Month heading */}
-      <motion.div
-        key={`${year}-${month}`}
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-        className="text-center mb-16 mt-6"
-      >
-        <p className="font-sans-zen text-xs tracking-[0.4em] text-[var(--ink-mute)] uppercase mb-4">
-          tokonoma · {year}
-        </p>
-        <h2 className="text-5xl md:text-6xl font-light text-[var(--ink)] tracking-wide">
-          {MONTH_LABELS[month]}
-        </h2>
-        <div className="flex items-center justify-center gap-4 mt-4">
-          <span className="brush-divider w-14" />
-          <span className="text-[var(--tea-deep)] text-sm tracking-[0.3em]">
-            {MONTH_POETIC[month]}
-          </span>
-          <span className="brush-divider w-14" />
-        </div>
-      </motion.div>
-
       {/* Gallery */}
       {loading ? (
         <div className="flex items-center justify-center min-h-[320px]">
