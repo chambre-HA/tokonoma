@@ -18,7 +18,7 @@ import {
   rectSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Upload, Trash2, ChevronLeft, Check, AlertCircle, GripVertical, Save } from 'lucide-react'
+import { Upload, Trash2, ChevronLeft, Check, AlertCircle, GripVertical, Save, Pencil, X as XIcon } from 'lucide-react'
 import { MonthCalendarNav } from '@/components/MonthCalendarNav'
 import { MONTH_LABELS, type MonthIndex, type Photo } from '@/types'
 
@@ -110,18 +110,36 @@ export default function AdminPage() {
 function SortablePhoto({
   photo,
   onDelete,
+  onSaveCaption,
 }: {
   photo: Photo
   onDelete: (key: string) => void
+  onSaveCaption: (key: string, caption: string) => Promise<void>
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: photo.key })
+
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(photo.caption || '')
+  const [saving, setSaving] = useState(false)
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.45 : 1,
     zIndex: isDragging ? 50 : undefined,
+  }
+
+  async function commitCaption() {
+    setSaving(true)
+    await onSaveCaption(photo.key, draft)
+    setSaving(false)
+    setEditing(false)
+  }
+
+  function cancelEdit() {
+    setDraft(photo.caption || '')
+    setEditing(false)
   }
 
   return (
@@ -140,6 +158,15 @@ function SortablePhoto({
         <GripVertical className="w-4 h-4" />
       </div>
 
+      {/* delete */}
+      <button
+        onClick={() => onDelete(photo.key)}
+        className="absolute top-4 right-4 z-10 p-1.5 rounded-full bg-[var(--paper)] text-[var(--plum)] shadow opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[var(--plum)] hover:text-[var(--paper)]"
+        aria-label="Delete"
+      >
+        <Trash2 className="w-3.5 h-3.5" />
+      </button>
+
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={photo.url}
@@ -149,20 +176,49 @@ function SortablePhoto({
         draggable={false}
       />
 
-      {photo.caption && (
-        <p className="mt-2.5 px-1 text-[11px] text-[var(--ink-soft)] truncate" title={photo.caption}>
-          {photo.caption}
-        </p>
-      )}
-
-      {/* delete */}
-      <button
-        onClick={() => onDelete(photo.key)}
-        className="absolute top-4 right-4 z-10 p-1.5 rounded-full bg-[var(--paper)] text-[var(--plum)] shadow opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[var(--plum)] hover:text-[var(--paper)]"
-        aria-label="Delete"
-      >
-        <Trash2 className="w-3.5 h-3.5" />
-      </button>
+      {/* Caption row */}
+      <div className="mt-2.5 px-0.5">
+        {editing ? (
+          <div className="flex items-center gap-1.5">
+            <input
+              autoFocus
+              type="text"
+              value={draft}
+              onChange={e => setDraft(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') commitCaption(); if (e.key === 'Escape') cancelEdit() }}
+              placeholder="add a caption…"
+              maxLength={120}
+              className="flex-1 min-w-0 neumorph-inset text-[11px] px-2 py-1 text-[var(--ink)] placeholder:text-[var(--ink-mute)] outline-none rounded"
+            />
+            <button
+              onClick={commitCaption}
+              disabled={saving}
+              className="shrink-0 p-1 text-[var(--tea-deep)] hover:text-[var(--tea)] transition-colors disabled:opacity-40"
+              aria-label="Save caption"
+            >
+              <Check className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={cancelEdit}
+              className="shrink-0 p-1 text-[var(--ink-mute)] hover:text-[var(--ink)] transition-colors"
+              aria-label="Cancel"
+            >
+              <XIcon className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => { setDraft(photo.caption || ''); setEditing(true) }}
+            className="w-full text-left flex items-center gap-1.5 group/caption"
+            aria-label="Edit caption"
+          >
+            <span className="flex-1 text-[11px] text-[var(--ink-soft)] truncate italic">
+              {photo.caption || <span className="text-[var(--ink-mute)] not-italic">add caption…</span>}
+            </span>
+            <Pencil className="w-3 h-3 shrink-0 text-[var(--ink-mute)] opacity-0 group-hover/caption:opacity-100 transition-opacity" />
+          </button>
+        )}
+      </div>
     </div>
   )
 }
@@ -174,6 +230,7 @@ function AdminPanel({ password }: { password: string }) {
   const [year, setYear] = useState(now.getFullYear())
   const [month, setMonth] = useState<MonthIndex>((now.getMonth() + 1) as MonthIndex)
   const [photos, setPhotos] = useState<Photo[]>([])
+  const [activeMonths, setActiveMonths] = useState<Set<MonthIndex>>(new Set())
   const [loading, setLoading] = useState(false)
   const [files, setFiles] = useState<File[]>([])
   const [caption, setCaption] = useState('')
@@ -186,6 +243,17 @@ function AdminPanel({ password }: { password: string }) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } })
   )
+
+  // Load active months for the year (for greying out empty months)
+  useEffect(() => {
+    fetch(`/api/photos?year=${year}`)
+      .then(r => r.json())
+      .then(data => {
+        const months = new Set<MonthIndex>((data.photos || []).map((p: { month: MonthIndex }) => p.month))
+        setActiveMonths(months)
+      })
+      .catch(() => {})
+  }, [year])
 
   // Load photos + their saved order
   const refresh = useCallback(async () => {
@@ -244,6 +312,21 @@ function AdminPanel({ password }: { password: string }) {
     setCaption('')
     showFlash('ok', `Placed ${okCount} of ${files.length}`)
     await refresh()
+    setActiveMonths(prev => new Set([...prev, month]))
+  }
+
+  async function handleSaveCaption(key: string, caption: string) {
+    const res = await fetch('/api/photos/meta', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-password': password },
+      body: JSON.stringify({ year, month, key, caption }),
+    })
+    if (res.ok) {
+      setPhotos(prev => prev.map(p => p.key === key ? { ...p, caption: caption || undefined } : p))
+      showFlash('ok', 'Caption saved')
+    } else {
+      showFlash('err', 'Failed to save caption')
+    }
   }
 
   async function handleDelete(key: string) {
@@ -312,6 +395,7 @@ function AdminPanel({ password }: { password: string }) {
           selectedMonth={month}
           onSelectMonth={setMonth}
           onYearChange={setYear}
+          activeMonths={activeMonths}
         />
       </section>
 
@@ -436,7 +520,7 @@ function AdminPanel({ password }: { password: string }) {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.03, duration: 0.4 }}
                   >
-                    <SortablePhoto photo={p} onDelete={handleDelete} />
+                    <SortablePhoto photo={p} onDelete={handleDelete} onSaveCaption={handleSaveCaption} />
                   </motion.div>
                 ))}
               </div>
