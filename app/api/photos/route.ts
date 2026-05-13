@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { listPhotos, uploadPhoto, R2_PUBLIC_URL } from '@/lib/r2'
+import { listPhotos, uploadPhoto, getMeta, R2_PUBLIC_URL } from '@/lib/r2'
 import type { MonthIndex, Photo } from '@/types'
 
 export const runtime = 'nodejs'
@@ -11,10 +11,10 @@ function parseKey(key: string): { year: number; month: MonthIndex; caption?: str
   const year = parseInt(match[1])
   const month = parseInt(match[2]) as MonthIndex
   const filename = match[3]
-  // strip timestamp prefix and extension; blank slug means no caption
-  const captionPart = filename.replace(/^\d+-/, '').replace(/\.[a-z]+$/i, '')
-  const decoded = captionPart ? decodeURIComponent(captionPart).replace(/-/g, ' ') : ''
-  const caption = decoded && decoded !== 'untitled' ? decoded : undefined
+  // only extract caption when filename is {timestamp}-{slug}.{ext}
+  const captionMatch = filename.match(/^\d+-(.+)\.[a-z]+$/i)
+  const raw = captionMatch ? decodeURIComponent(captionMatch[1]).replace(/-/g, ' ') : ''
+  const caption = raw && raw !== 'untitled' ? raw : undefined
   return { year, month, caption }
 }
 
@@ -26,17 +26,26 @@ export async function GET(req: NextRequest) {
   const prefix = month ? `photos/${year}/${month}/` : `photos/${year}/`
 
   try {
-    const objects = (await listPhotos(prefix)).filter(o => !o.key.endsWith('order.json'))
+    const yearNum = parseInt(year)
+    const monthNum = month ? parseInt(month) : null
+
+    const [objects, meta] = await Promise.all([
+      listPhotos(prefix).then(o => o.filter(x => !x.key.endsWith('order.json') && !x.key.endsWith('meta.json'))),
+      monthNum ? getMeta(yearNum, monthNum) : Promise.resolve({} as Record<string, { caption: string }>),
+    ])
+
     const photos: Photo[] = objects
       .map(o => {
         const parsed = parseKey(o.key)
         if (!parsed) return null
+        // meta.json caption takes priority over filename caption
+        const metaCaption = meta[o.key]?.caption
         return {
           key: o.key,
           url: o.url,
           year: parsed.year,
           month: parsed.month,
-          caption: parsed.caption,
+          caption: metaCaption ?? parsed.caption,
           uploadedAt: o.uploadedAt,
           size: o.size,
         } as Photo
