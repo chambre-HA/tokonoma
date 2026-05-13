@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { VibeUncleHeader } from '@/components/VibeUncleHeader'
@@ -12,6 +12,17 @@ export default function Home() {
   const now = new Date()
   const [year, setYear] = useState(now.getFullYear())
   const [month, setMonth] = useState<MonthIndex>(((now.getMonth() + 1) as MonthIndex))
+  const [activeMonths, setActiveMonths] = useState<Set<MonthIndex>>(new Set())
+
+  useEffect(() => {
+    fetch(`/api/photos?year=${year}`)
+      .then(r => r.json())
+      .then(data => {
+        const months = new Set<MonthIndex>((data.photos || []).map((p: { month: MonthIndex }) => p.month))
+        setActiveMonths(months)
+      })
+      .catch(() => {})
+  }, [year])
 
   return (
     <main className="min-h-screen pb-24">
@@ -48,6 +59,7 @@ export default function Home() {
           selectedMonth={month}
           onSelectMonth={setMonth}
           onYearChange={setYear}
+          activeMonths={activeMonths}
         />
       </section>
 
