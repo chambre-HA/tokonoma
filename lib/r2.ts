@@ -45,6 +45,32 @@ export async function deletePhoto(key: string) {
   await r2.send(new DeleteObjectCommand({ Bucket: R2_BUCKET, Key: key }))
 }
 
+// Caption metadata — stored as photos/{year}/{month}/meta.json
+// Shape: { [key: string]: { caption: string } }
+export function metaKey(year: number, month: number) {
+  return `photos/${year}/${month}/meta.json`
+}
+
+export async function getMeta(year: number, month: number): Promise<Record<string, { caption: string }>> {
+  try {
+    const res = await r2.send(new GetObjectCommand({ Bucket: R2_BUCKET, Key: metaKey(year, month) }))
+    const text = await (res.Body as import('@smithy/types').SdkStreamMixin).transformToString()
+    return JSON.parse(text)
+  } catch {
+    return {}
+  }
+}
+
+export async function saveMeta(year: number, month: number, meta: Record<string, { caption: string }>) {
+  await r2.send(new PutObjectCommand({
+    Bucket: R2_BUCKET,
+    Key: metaKey(year, month),
+    Body: JSON.stringify(meta),
+    ContentType: 'application/json',
+    CacheControl: 'no-cache',
+  }))
+}
+
 // Order manifest — stored as photos/{year}/{month}/order.json
 export function orderKey(year: number, month: number) {
   return `photos/${year}/${month}/order.json`
@@ -53,14 +79,8 @@ export function orderKey(year: number, month: number) {
 export async function getOrder(year: number, month: number): Promise<string[]> {
   try {
     const res = await r2.send(new GetObjectCommand({ Bucket: R2_BUCKET, Key: orderKey(year, month) }))
-    const chunks: Uint8Array[] = []
-    const reader = (res.Body as ReadableStream<Uint8Array>).getReader()
-    while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
-      if (value) chunks.push(value)
-    }
-    return JSON.parse(Buffer.concat(chunks).toString('utf-8'))
+    const text = await (res.Body as import('@smithy/types').SdkStreamMixin).transformToString()
+    return JSON.parse(text)
   } catch {
     return [] // no order file yet
   }
@@ -78,13 +98,6 @@ export async function saveOrder(year: number, month: number, keys: string[]) {
 
 export async function getPhotoBuffer(key: string) {
   const res = await r2.send(new GetObjectCommand({ Bucket: R2_BUCKET, Key: key }))
-  const stream = res.Body as ReadableStream<Uint8Array>
-  const chunks: Uint8Array[] = []
-  const reader = stream.getReader()
-  while (true) {
-    const { done, value } = await reader.read()
-    if (done) break
-    if (value) chunks.push(value)
-  }
-  return Buffer.concat(chunks)
+  const bytes = await (res.Body as import('@smithy/types').SdkStreamMixin).transformToByteArray()
+  return Buffer.from(bytes)
 }
