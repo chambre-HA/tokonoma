@@ -71,8 +71,8 @@ export default function Home() {
       {/* Footer */}
       <footer className="mt-32 px-4 text-center">
         <div className="brush-divider max-w-xs mx-auto mb-6" />
-        <p className="font-sans-zen text-[10px] tracking-[0.4em] text-[var(--ink-mute)] uppercase mb-2">
-          一期一会 · ichigo ichie
+        <p className="font-sans-zen text-[11px] tracking-[0.25em] text-[var(--ink-mute)] mb-2">
+          大 道 大 商 &nbsp;-&nbsp; 新 加 坡 &nbsp;｜&nbsp; 悠然学堂 &nbsp;-&nbsp; 中观学堂
         </p>
         <Link
           href="/admin"
