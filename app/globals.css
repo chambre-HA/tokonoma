@@ -1,0 +1,159 @@
+@import 'tailwindcss';
+
+/*
+  花间静茶 — Tokonoma palette
+  Inspired by ceramic tea bowls, raw linen, and sumi ink.
+*/
+:root {
+  --paper: #f4efe4;          /* warm beige base — washi paper */
+  --paper-soft: #ece6d6;     /* slightly deeper for surfaces */
+  --paper-deep: #ddd5be;     /* shadowed alcove */
+  --ink: #1d2a26;            /* deep ink, with green undertone */
+  --ink-soft: #3a4842;       /* secondary text */
+  --ink-mute: #6b7770;       /* tertiary */
+  --tea: #5a7d5a;            /* matcha tea green */
+  --tea-deep: #3d5a3d;       /* steeped tea */
+  --tea-light: #b8c9a8;      /* young leaf */
+  --moss: #7a8c5c;           /* moss accent */
+  --plum: #8a4a4a;           /* plum seal red — accent only */
+  --gold: #b89968;           /* aged gold */
+}
+
+html, body {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+body {
+  font-family: 'Noto Serif SC', 'Songti SC', 'Source Han Serif', 'Cormorant Garamond', Georgia, serif;
+  font-feature-settings: 'palt' 1;
+  -webkit-font-smoothing: antialiased;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(184, 201, 168, 0.12), transparent 45%),
+    radial-gradient(circle at 88% 82%, rgba(184, 153, 104, 0.08), transparent 50%),
+    var(--paper);
+  min-height: 100vh;
+}
+
+/* Subtle paper grain */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.35;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.12 0 0 0 0 0.16 0 0 0 0 0.14 0 0 0 0.06 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Sans for UI labels and small caps */
+.font-sans-zen {
+  font-family: 'Inter', 'Helvetica Neue', system-ui, -apple-system, sans-serif;
+  letter-spacing: 0.02em;
+}
+
+/* Vertical Chinese for month tiles */
+.vertical-zh {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  letter-spacing: 0.15em;
+}
+
+/* Neumorphic surface — soft shadows on warm paper */
+.neumorph {
+  background: var(--paper);
+  border-radius: 14px;
+  box-shadow:
+    8px 8px 18px rgba(120, 100, 70, 0.18),
+    -6px -6px 14px rgba(255, 250, 235, 0.85);
+}
+
+.neumorph-inset {
+  background: var(--paper);
+  border-radius: 14px;
+  box-shadow:
+    inset 5px 5px 12px rgba(120, 100, 70, 0.20),
+    inset -4px -4px 10px rgba(255, 250, 235, 0.85);
+}
+
+.neumorph-soft {
+  background: var(--paper);
+  border-radius: 12px;
+  box-shadow:
+    4px 4px 10px rgba(120, 100, 70, 0.13),
+    -3px -3px 8px rgba(255, 250, 235, 0.75);
+}
+
+/* Month tile — borrowed from the brief sketch */
+.month-tile {
+  background: var(--paper);
+  border: 1.5px solid var(--ink);
+  border-radius: 22px;
+  transition: all 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.month-tile:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow:
+    10px 12px 24px rgba(29, 42, 38, 0.18),
+    -4px -4px 12px rgba(255, 250, 235, 0.7);
+}
+.month-tile.active {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+  box-shadow:
+    inset 3px 3px 8px rgba(0, 0, 0, 0.35),
+    0 0 0 4px rgba(90, 125, 90, 0.18);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--paper-soft); }
+::-webkit-scrollbar-thumb {
+  background: var(--ink-mute);
+  border-radius: 6px;
+  border: 2px solid var(--paper-soft);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--tea-deep); }
+
+/* Selection */
+::selection {
+  background: var(--tea-light);
+  color: var(--ink);
+}
+
+/* Brush stroke divider */
+.brush-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--ink-mute) 20%, var(--ink-mute) 80%, transparent);
+  opacity: 0.4;
+}
+
+/* Seal (印) — for plum-colored accents */
+.seal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--plum);
+  color: var(--paper);
+  font-family: 'Noto Serif SC', serif;
+  border-radius: 4px;
+  padding: 2px 6px;
+  letter-spacing: 0.1em;
+}
+
+/* Ink wash bloom animation — used as a hover effect on photos */
+@keyframes ink-bloom {
+  0% { transform: scale(1); filter: brightness(1) saturate(1); }
+  100% { transform: scale(1.04); filter: brightness(1.05) saturate(1.1); }
+}
+
+/* Slow fade for galleries */
+@keyframes drift-in {
+  0% { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.drift-in { animation: drift-in 600ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* Make all interactive layers stack above paper grain */
+main, header, nav, section, article, aside, footer { position: relative; z-index: 1; }
