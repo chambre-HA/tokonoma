@@ -239,7 +239,7 @@ function TeaCeremonyIllustration() {
         fontFamily="'Noto Serif SC', serif">寂</text>
 
       {/* Single flower in vase — left of scroll */}
-      <path d="M72" y1="110" d="M72 110 Q70 95 68 80" stroke="var(--tea)" strokeWidth="0.8" opacity="0.5" strokeLinecap="round"/>
+      <path d="M72 110 Q70 95 68 80" stroke="var(--tea)" strokeWidth="0.8" opacity="0.5" strokeLinecap="round"/>
       <circle cx="68" cy="78" r="5" fill={ACC} opacity="0.25"/>
       <circle cx="64" cy="82" r="3.5" fill={ACC} opacity="0.2"/>
       <path d="M64 108 Q72 105 80 108 L79 114 Q72 116 65 114 Z" fill="var(--paper-deep)" stroke="var(--ink-mute)" strokeWidth="0.5" opacity="0.6"/>
