@@ -455,12 +455,14 @@ function PrincipleCard({ p, index }: { p: typeof principles[0]; index: number })
   const [isHovered, setIsHovered] = useState(false)
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 28 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-40px' }}
-      transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: index * 0.1 }}
-    >
+    <div className="h-full" style={{ background: 'var(--paper)' }}>
+      <motion.div
+        initial={{ opacity: 0, y: 28 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: '-40px' }}
+        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: index * 0.1 }}
+        className="h-full"
+      >
       <Link
         href={`/principle/${p.slug}`}
         className="group block h-full"
@@ -526,7 +528,8 @@ function PrincipleCard({ p, index }: { p: typeof principles[0]; index: number })
                style={{ background: p.accent, opacity: 0.5 }} />
         </div>
       </Link>
-    </motion.div>
+      </motion.div>
+    </div>
   )
 }
 
