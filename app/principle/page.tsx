@@ -522,7 +522,7 @@ function PrincipleCard({ p, index }: { p: typeof principles[0]; index: number })
           </span>
 
           {/* Hover underline */}
-          <div className="h-[2px] w-0 group-hover:w-full transition-all duration-500"
+          <div className="absolute bottom-0 left-0 h-[2px] w-0 group-hover:w-full transition-all duration-500"
                style={{ background: p.accent, opacity: 0.5 }} />
         </div>
       </Link>
