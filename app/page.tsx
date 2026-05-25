@@ -38,7 +38,11 @@ export default function Home() {
           <p className="font-sans-zen text-[10px] tracking-[0.5em] text-[var(--ink-mute)] uppercase mb-3">
             tokonoma · 床之间
           </p>
-          <h1 className="text-5xl md:text-7xl font-light text-[var(--ink)] tracking-[0.1em]">
+          <h1
+            className="text-5xl md:text-7xl font-light text-[var(--ink)] tracking-[0.1em] cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => (window as unknown as { toggleVibeUncleBar?: () => void }).toggleVibeUncleBar?.()}
+            title="Click for more info"
+          >
             花<span className="text-[var(--tea-deep)]">间</span>静<span className="text-[var(--tea-deep)]">茶</span>
           </h1>
           <div className="mt-4 flex items-center justify-center gap-3">
