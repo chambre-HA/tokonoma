@@ -117,7 +117,7 @@ export function VibeUncleHeader() {
         className={`fixed top-0 left-0 right-0 z-[200] overflow-hidden shadow-lg transition-all duration-300 ease-out ${
           isOpen ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'
         }`}
-        style={{ background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)' }}
+        style={{ background: 'linear-gradient(135deg, #6b7c5e 0%, #4a5a40 100%)' }}
       >
         <div className="flex items-center justify-between px-4 py-3">
           <a
