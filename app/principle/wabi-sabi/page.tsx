@@ -281,7 +281,7 @@ const applicationItems = [
 
 export default function WabiSabiPage() {
   return (
-    <main className="min-h-screen pb-32" style={{ background: 'var(--paper)' }}>
+    <main className="min-h-screen pb-32">
 
       <PrincipleTopNav slug="wabi-sabi" />
 
