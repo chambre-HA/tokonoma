@@ -535,7 +535,7 @@ function PrincipleCard({ p, index }: { p: typeof principles[0]; index: number })
 
 export default function PrinciplePage() {
   return (
-    <main className="min-h-screen pb-32" style={{ background: 'var(--paper)' }}>
+    <main className="min-h-screen pb-32">
 
       {/* Back nav */}
       <div className="max-w-[900px] mx-auto px-6 pt-8">
