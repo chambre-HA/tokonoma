@@ -327,7 +327,7 @@ const applicationItems = [
 
 export default function YoinPage() {
   return (
-    <main className="min-h-screen pb-32" style={{ background: 'var(--paper)' }}>
+    <main className="min-h-screen pb-32">
 
       {/* Back nav */}
       <PrincipleTopNav slug="yoin" />
