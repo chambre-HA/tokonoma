@@ -314,7 +314,7 @@ const applicationItems = [
 
 export default function MonoNoAwarePage() {
   return (
-    <main className="min-h-screen pb-32" style={{ background: 'var(--paper)' }}>
+    <main className="min-h-screen pb-32">
 
       <PrincipleTopNav slug="mono-no-aware" />
 
