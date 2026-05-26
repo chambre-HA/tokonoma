@@ -289,7 +289,7 @@ const applicationItems = [
 
 export default function YojoPage() {
   return (
-    <main className="min-h-screen pb-32" style={{ background: 'var(--paper)' }}>
+    <main className="min-h-screen pb-32">
 
       <PrincipleTopNav slug="yojo" />
 
