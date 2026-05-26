@@ -344,7 +344,7 @@ const applicationItems = [
 
 export default function OmotenashiPage() {
   return (
-    <main className="min-h-screen pb-32" style={{ background: 'var(--paper)' }}>
+    <main className="min-h-screen pb-32">
 
       <PrincipleTopNav slug="omotenashi" />
 
