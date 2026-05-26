@@ -263,7 +263,7 @@ const applicationItems = [
 
 export default function YugenPage() {
   return (
-    <main className="min-h-screen pb-32" style={{ background: 'var(--paper)' }}>
+    <main className="min-h-screen pb-32">
 
       <PrincipleTopNav slug="yugen" />
 
