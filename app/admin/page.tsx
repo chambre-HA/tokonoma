@@ -7,6 +7,8 @@ import {
   DndContext,
   closestCenter,
   PointerSensor,
+  TouchSensor,
+  MouseSensor,
   useSensor,
   useSensors,
   DragEndEvent,
@@ -126,8 +128,9 @@ function SortablePhoto({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.45 : 1,
+    opacity: isDragging ? 0.4 : 1,
     zIndex: isDragging ? 50 : undefined,
+    boxShadow: isDragging ? '0 20px 40px rgba(29,42,38,0.25)' : undefined,
   }
 
   async function commitCaption() {
@@ -146,35 +149,40 @@ function SortablePhoto({
     <div
       ref={setNodeRef}
       style={style}
-      className="relative neumorph p-2.5 group touch-none select-none"
+      className="relative neumorph p-2.5 group select-none"
     >
-      {/* drag handle */}
-      <div
-        {...attributes}
-        {...listeners}
-        className="absolute top-4 left-4 z-10 p-1 rounded text-[var(--ink-mute)] opacity-0 group-hover:opacity-60 hover:!opacity-100 transition-opacity cursor-grab active:cursor-grabbing"
-        aria-label="Drag to reorder"
-      >
-        <GripVertical className="w-4 h-4" />
-      </div>
-
-      {/* delete */}
+      {/* delete — sits above drag area */}
       <button
         onClick={() => onDelete(photo.key)}
-        className="absolute top-4 right-4 z-10 p-1.5 rounded-full bg-[var(--paper)] text-[var(--plum)] shadow opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[var(--plum)] hover:text-[var(--paper)]"
+        onPointerDown={e => e.stopPropagation()}
+        className="absolute top-4 right-4 z-20 p-1.5 rounded-full bg-[var(--paper)] text-[var(--plum)] shadow opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[var(--plum)] hover:text-[var(--paper)]"
         aria-label="Delete"
       >
         <Trash2 className="w-3.5 h-3.5" />
       </button>
 
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={photo.url}
-        alt={photo.caption || ''}
-        className="w-full aspect-square object-cover rounded-lg"
-        loading="lazy"
-        draggable={false}
-      />
+      {/* drag zone — whole image area */}
+      <div
+        {...attributes}
+        {...listeners}
+        className={`relative overflow-hidden rounded-lg bg-[var(--paper-deep)] cursor-grab active:cursor-grabbing ${isDragging ? 'ring-2 ring-[var(--tea-deep)] ring-offset-2' : ''}`}
+        aria-label="Drag to reorder"
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={photo.url}
+          alt={photo.caption || ''}
+          className="w-full aspect-square object-cover"
+          loading="lazy"
+          draggable={false}
+        />
+        {/* grip indicator — always visible, subtle */}
+        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-0.5 opacity-30 group-hover:opacity-60 transition-opacity pointer-events-none">
+          {[0,1,2,3,4,5].map(i => (
+            <div key={i} className="w-0.5 h-3 rounded-full bg-[var(--paper)]" />
+          ))}
+        </div>
+      </div>
 
       {/* Caption row */}
       <div className="mt-2.5 px-0.5">
@@ -241,7 +249,8 @@ function AdminPanel({ password }: { password: string }) {
   const [savingOrder, setSavingOrder] = useState(false)
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 6 } })
+    useSensor(MouseSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 8 } })
   )
 
   // Load active months for the year (for greying out empty months)
