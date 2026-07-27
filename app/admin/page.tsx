@@ -299,6 +299,7 @@ function AdminPanel({ password }: { password: string }) {
     setUploading(true)
     setProgress({ done: 0, total: files.length })
     let okCount = 0
+    const errors: string[] = []
     for (let i = 0; i < files.length; i++) {
       const file = files[i]
       const fd = new FormData()
@@ -312,14 +313,32 @@ function AdminPanel({ password }: { password: string }) {
           headers: { 'x-admin-password': password },
           body: fd,
         })
-        if (res.ok) okCount++
-      } catch { /* ignore individual failure */ }
+        if (res.ok) {
+          okCount++
+        } else {
+          let msg = `HTTP ${res.status}`
+          try {
+            const body = await res.json()
+            if (body?.error) msg = body.error
+          } catch { /* body wasn't JSON */ }
+          console.error(`Upload failed for "${file.name}":`, msg)
+          errors.push(`${file.name}: ${msg}`)
+        }
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Network error'
+        console.error(`Upload failed for "${file.name}":`, err)
+        errors.push(`${file.name}: ${msg}`)
+      }
       setProgress({ done: i + 1, total: files.length })
     }
     setUploading(false)
     setFiles([])
     setCaption('')
-    showFlash('ok', `Placed ${okCount} of ${files.length}`)
+    if (errors.length === 0) {
+      showFlash('ok', `Placed ${okCount} of ${files.length}`)
+    } else {
+      showFlash('err', `${okCount}/${files.length} placed — ${errors[0]}${errors.length > 1 ? ` (+${errors.length - 1} more)` : ''}`)
+    }
     await refresh()
     setActiveMonths(prev => new Set([...prev, month]))
   }
