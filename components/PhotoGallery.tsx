@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, ChevronLeft, ChevronRight } from 'lucide-react'
 import type { Photo, MonthIndex } from '@/types'
@@ -10,10 +10,29 @@ interface Props {
   month: MonthIndex
 }
 
+const slide = {
+  enter: (dir: number) => ({ opacity: 0, x: dir > 0 ? 48 : -48 }),
+  center: { opacity: 1, x: 0 },
+  exit: (dir: number) => ({ opacity: 0, x: dir > 0 ? -48 : 48 }),
+}
+
 export function PhotoGallery({ year, month }: Props) {
   const [photos, setPhotos] = useState<Photo[]>([])
   const [loading, setLoading] = useState(true)
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null)
+
+  // Track which way we're moving through the calendar so the gallery slides
+  // the right direction (forward = left, backward = right) instead of just fading.
+  // Computed during render (not an effect) so the very transition triggered by
+  // this year/month change already sees the right direction.
+  const total = year * 12 + month
+  const directionRef = useRef(1)
+  const prevTotalRef = useRef(total)
+  if (total !== prevTotalRef.current) {
+    directionRef.current = total > prevTotalRef.current ? 1 : -1
+    prevTotalRef.current = total
+  }
+  const direction = directionRef.current
 
   useEffect(() => {
     let cancelled = false
@@ -57,47 +76,59 @@ export function PhotoGallery({ year, month }: Props) {
   })
 
   return (
-    <section className="w-full">
+    <section className="w-full overflow-hidden">
       {/* Gallery */}
-      {loading ? (
-        <div className="flex items-center justify-center min-h-[320px]">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ repeat: Infinity, duration: 2.4, ease: 'linear' }}
-            className="w-8 h-8 rounded-full border-2 border-[var(--ink-mute)] border-t-transparent"
-          />
-        </div>
-      ) : photos.length === 0 ? (
-        <EmptyAlcove />
-      ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
-          {photos.map((photo, idx) => (
-            <motion.figure
-              key={photo.key}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: Math.min(idx * 0.05, 0.5), duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-              className="neumorph p-3 cursor-zoom-in group"
-              onClick={() => setLightboxIdx(idx)}
-            >
-              <div className="overflow-hidden rounded-lg bg-[var(--paper-deep)] aspect-square">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={photo.url}
-                  alt={photo.caption || ''}
-                  loading="lazy"
-                  className="w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-[1.05] group-hover:brightness-105"
-                />
-              </div>
-              {photo.caption && (
-                <figcaption className="mt-3 px-1 text-sm text-[var(--ink-soft)] tracking-wide leading-snug">
-                  {photo.caption}
-                </figcaption>
-              )}
-            </motion.figure>
-          ))}
-        </div>
-      )}
+      <AnimatePresence mode="wait" custom={direction} initial={false}>
+        <motion.div
+          key={`${year}-${month}`}
+          custom={direction}
+          variants={slide}
+          initial="enter"
+          animate="center"
+          exit="exit"
+          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+        >
+          {loading ? (
+            <div className="flex items-center justify-center min-h-[320px]">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ repeat: Infinity, duration: 2.4, ease: 'linear' }}
+                className="w-8 h-8 rounded-full border-2 border-[var(--ink-mute)] border-t-transparent"
+              />
+            </div>
+          ) : photos.length === 0 ? (
+            <EmptyAlcove />
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
+              {photos.map((photo, idx) => (
+                <motion.figure
+                  key={photo.key}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: Math.min(idx * 0.05, 0.5), duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                  className="neumorph p-3 cursor-zoom-in group"
+                  onClick={() => setLightboxIdx(idx)}
+                >
+                  <div className="overflow-hidden rounded-lg bg-[var(--paper-deep)] aspect-square">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={photo.url}
+                      alt={photo.caption || ''}
+                      loading="lazy"
+                      className="w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-[1.05] group-hover:brightness-105"
+                    />
+                  </div>
+                  {photo.caption && (
+                    <figcaption className="mt-3 px-1 text-sm text-[var(--ink-soft)] tracking-wide leading-snug">
+                      {photo.caption}
+                    </figcaption>
+                  )}
+                </motion.figure>
+              ))}
+            </div>
+          )}
+        </motion.div>
+      </AnimatePresence>
 
       {/* Lightbox */}
       <AnimatePresence>
